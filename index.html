@@ -7,6 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
 
 <style>
 body{
@@ -86,6 +87,21 @@ body{
   box-shadow:0 4px 10px rgba(0,0,0,.3);
 }
 
+/* language switch */
+#lang-switch{
+  position:absolute;
+  right:20px;
+  bottom:80px;
+  width:auto;
+  padding:6px 12px;
+  background:#1976d2;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  z-index:1000;
+}
+
 /* popup */
 .leaflet-popup-content-wrapper{
   border-radius:14px;
@@ -115,22 +131,34 @@ body{
 <body>
 
 <div id="sidebar">
-  <h2>高知観光スポット</h2>
+  <h2 id="sidebar-title">高知観光スポット</h2>
   <ul id="spot-list"></ul>
 </div>
 
 <div id="map">
   <button id="locate-btn">📍</button>
+  <button id="lang-switch">EN</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
 <script>
+let lang = 'ja';
+const text = {
+  ja: {current:"📍 現在地",official:"公式ページ →",sidebar:"高知観光スポット"},
+  en: {current:"📍 Current Location",official:"Official Page →",sidebar:"Kochi Tourism Spots"}
+};
+
 const map = L.map("map").setView([33.5597,133.5311],9);
 
-L.tileLayer(
-  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-  { attribution:"Tiles © Esri" }
-).addTo(map);
+/* マップ切替レイヤー */
+const baseLayers = {
+  "衛星": L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {attribution:"Tiles © Esri"}),
+  "標準": L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {attribution:"© OpenStreetMap"}),
+  "地形": L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {attribution:"© OpenTopoMap"})
+};
+baseLayers["衛星"].addTo(map);
+L.control.layers(baseLayers).addTo(map);
 
 const genrePins = {
   "自然":"https://maps.google.com/mapfiles/ms/icons/green-dot.png",
@@ -139,66 +167,92 @@ const genrePins = {
   "体験":"https://maps.google.com/mapfiles/ms/icons/purple-dot.png"
 };
 
-/* 観光地 */
+/* 観光地データ */
 const spots = [
- {name:"桂浜",lat:33.4961,lng:133.5715,stars:5,genre:"文化",desc:"坂本龍馬像で有名な景勝地。",link:"https://katsurahama-park.com/"},
- {name:"仁淀川",lat:33.5535,lng:133.0458,stars:5,genre:"自然",desc:"仁淀ブルーの清流。",link:"https://kochi-tabi.jp/"},
- {name:"にこ淵",lat:33.6446,lng:133.1656,stars:4,genre:"自然",desc:"神秘的な滝壺。",link:"https://kochi-tabi.jp/"},
- {name:"北川村モネの庭",lat:33.5836,lng:134.0622,stars:4,genre:"文化",desc:"モネ公認の庭園。",link:"https://www.monet-garden.jp/"},
- {name:"四国カルスト",lat:33.3652,lng:132.9253,stars:4,genre:"自然",desc:"標高1000mの絶景高原。",link:"https://visitkochijapan.com/"},
- {name:"高知城",lat:33.5599,lng:133.5312,stars:3,genre:"文化",desc:"現存天守の城。",link:"https://kochipark.jp/kochijyo/"},
- {name:"ひろめ市場",lat:33.5586,lng:133.5310,stars:4,genre:"グルメ",desc:"高知グルメの聖地。",link:"https://www.hirome.co.jp/"},
- {name:"坂本龍馬記念館",lat:33.5072,lng:133.5905,stars:4,genre:"文化",desc:"龍馬の資料館。",link:"https://ryoma-kinenkan.jp/"},
- {name:"四万十川",lat:33.2333,lng:132.8667,stars:5,genre:"自然",desc:"日本最後の清流。",link:"https://kochi-tabi.jp/"},
- {name:"牧野植物園",lat:33.5612,lng:133.5372,stars:4,genre:"自然",desc:"牧野富太郎ゆかり。",link:"https://www.makino.or.jp/"},
- {name:"金剛福寺",lat:32.7280,lng:133.0282,stars:4,genre:"文化",desc:"第38番札所。",link:"https://www.kongofukuji.or.jp/"},
- {name:"稲叢山",lat:33.6312,lng:133.1150,stars:4,genre:"自然",desc:"高知最高峰。",link:"https://kochi-tabi.jp/"},
- {name:"土佐神社",lat:33.5650,lng:133.5365,stars:4,genre:"文化",desc:"土佐一宮。",link:"https://www.tosajinja.or.jp/"},
- {name:"桂浜水族館",lat:33.4955,lng:133.5730,stars:3,genre:"体験",desc:"レトロ水族館。",link:"https://katurahama-aq.jp/"},
- {name:"竹林寺",lat:33.6060,lng:133.5310,stars:4,genre:"文化",desc:"第31番札所。",link:"https://www.takeshindenji.jp/"},
- {name:"足摺岬",lat:32.7075,lng:133.0275,stars:5,genre:"自然",desc:"高知最南端。",link:"https://kochi-tabi.jp/"},
- {name:"日曜市",lat:33.5589,lng:133.5300,stars:4,genre:"体験",desc:"毎週開催の朝市。",link:"https://kochi-tabi.jp/"},
- {name:"磯木洞",lat:33.4560,lng:133.4820,stars:4,genre:"自然",desc:"苔むした渓谷。",link:"https://kochi-tabi.jp/"},
- {name:"杉の大杉",lat:33.4815,lng:133.3040,stars:5,genre:"自然",desc:"樹齢3000年。",link:"https://kochi-tabi.jp/"}
+ {name:{ja:"桂浜",en:"Katsurahama"},lat:33.4961,lng:133.5715,stars:5,genre:"文化",desc:{ja:"坂本龍馬像で有名な景勝地。",en:"Famous for Sakamoto Ryoma statue."},link:"https://katsurahama-park.com/"},
+ {name:{ja:"仁淀川",en:"Niyodo River"},lat:33.5535,lng:133.0458,stars:5,genre:"自然",desc:{ja:"仁淀ブルーの清流。",en:"Clear river with Niyodo Blue."},link:"https://kochi-tabi.jp/"},
+ {name:{ja:"にこ淵",en:"Niko Falls"},lat:33.6446,lng:133.1656,stars:4,genre:"自然",desc:{ja:"神秘的な滝壺。",en:"Mystical waterfall basin."},link:"https://kochi-tabi.jp/"},
+ {name:{ja:"北川村モネの庭",en:"Monet Garden Kitagawa"},lat:33.5836,lng:134.0622,stars:4,genre:"文化",desc:{ja:"モネ公認の庭園。",en:"Official Monet garden."},link:"https://www.monet-garden.jp/"},
+ {name:{ja:"四国カルスト",en:"Shikoku Karst"},lat:33.3652,lng:132.9253,stars:4,genre:"自然",desc:{ja:"標高1000mの絶景高原。",en:"Spectacular plateau at 1000m."},link:"https://visitkochijapan.com/"},
+ {name:{ja:"高知城",en:"Kochi Castle"},lat:33.5599,lng:133.5312,stars:3,genre:"文化",desc:{ja:"現存天守の城。",en:"Existing castle keep."},link:"https://kochipark.jp/kochijyo/"},
+ {name:{ja:"ひろめ市場",en:"Hirome Market"},lat:33.5586,lng:133.5310,stars:4,genre:"グルメ",desc:{ja:"高知グルメの聖地。",en:"Famous local food market."},link:"https://www.hirome.co.jp/"},
+ {name:{ja:"坂本龍馬記念館",en:"Ryoma Memorial Museum"},lat:33.5072,lng:133.5905,stars:4,genre:"文化",desc:{ja:"龍馬の資料館。",en:"Museum of Ryoma."},link:"https://ryoma-kinenkan.jp/"},
+ {name:{ja:"四万十川",en:"Shimanto River"},lat:33.2333,lng:132.8667,stars:5,genre:"自然",desc:{ja:"日本最後の清流。",en:"Last clear river in Japan."},link:"https://kochi-tabi.jp/"},
+ {name:{ja:"牧野植物園",en:"Makino Botanical Garden"},lat:33.5612,lng:133.5372,stars:4,genre:"自然",desc:{ja:"牧野富太郎ゆかり。",en:"Associated with Tomitaro Makino."},link:"https://www.makino.or.jp/"},
+ {name:{ja:"金剛福寺",en:"Kongofukuji"},lat:32.7280,lng:133.0282,stars:4,genre:"文化",desc:{ja:"第38番札所。",en:"38th temple."},link:"https://www.kongofukuji.or.jp/"},
+ {name:{ja:"稲叢山",en:"Mount Inamura"},lat:33.6312,lng:133.1150,stars:4,genre:"自然",desc:{ja:"高知最高峰。",en:"Highest peak in Kochi."},link:"https://kochi-tabi.jp/"},
+ {name:{ja:"土佐神社",en:"Tosa Shrine"},lat:33.5650,lng:133.5365,stars:4,genre:"文化",desc:{ja:"土佐一宮。",en:"Chief shrine of Tosa."},link:"https://www.tosajinja.or.jp/"},
+ {name:{ja:"桂浜水族館",en:"Katsurahama Aquarium"},lat:33.4955,lng:133.5730,stars:3,genre:"体験",desc:{ja:"レトロ水族館。",en:"Retro aquarium."},link:"https://katurahama-aq.jp/"},
+ {name:{ja:"竹林寺",en:"Chikurinji"},lat:33.6060,lng:133.5310,stars:4,genre:"文化",desc:{ja:"第31番札所。",en:"31st temple."},link:"https://www.takeshindenji.jp/"},
+ {name:{ja:"足摺岬",en:"Cape Ashizuri"},lat:32.7075,lng:133.0275,stars:5,genre:"自然",desc:{ja:"高知最南端。",en:"Southernmost point of Kochi."},link:"https://kochi-tabi.jp/"},
+ {name:{ja:"日曜市",en:"Sunday Market"},lat:33.5589,lng:133.5300,stars:4,genre:"体験",desc:{ja:"毎週開催の朝市。",en:"Weekly morning market."},link:"https://kochi-tabi.jp/"},
+ {name:{ja:"磯木洞",en:"Isokidou"},lat:33.4560,lng:133.4820,stars:4,genre:"自然",desc:{ja:"苔むした渓谷。",en:"Mossy valley."},link:"https://kochi-tabi.jp/"},
+ {name:{ja:"杉の大杉",en:"Sugi no Osugi"},lat:33.4815,lng:133.3040,stars:5,genre:"自然",desc:{ja:"樹齢3000年。",en:"3000-year-old tree."},link:"https://kochi-tabi.jp/"}
 ];
 
 function stars(n){ return "★".repeat(n)+"☆".repeat(5-n); }
 
+let markers = [];
 spots.forEach(s=>{
  const m = L.marker([s.lat,s.lng],{
    icon:L.icon({iconUrl:genrePins[s.genre],iconSize:[32,32],iconAnchor:[16,32]})
  }).addTo(map);
-
  m.bindPopup(`
-   <div class="popup-name">${s.name}</div>
+   <div class="popup-name">${s.name[lang]}</div>
    <div class="popup-stars">${stars(s.stars)}</div>
-   <div class="popup-desc">${s.desc}</div>
-   <div class="popup-link"><a href="${s.link}" target="_blank">公式ページ →</a></div>
+   <div class="popup-desc">${s.desc[lang]}</div>
+   <div class="popup-link"><a href="${s.link}" target="_blank">${text[lang].official}</a></div>
  `);
 
  const li = document.createElement("li");
  li.innerHTML = `
    <div class="side-item">
-     <div class="side-title">${s.name}</div>
+     <div class="side-title">${s.name[lang]}</div>
      <div class="side-genre" data-genre="${s.genre}">${s.genre}</div>
    </div>
  `;
- li.onclick = ()=>{ map.setView([s.lat,s.lng],13); m.openPopup(); };
+ li.onclick = ()=>{
+   map.setView([s.lat,s.lng],13);
+   m.openPopup();
+   if(cur) route.setWaypoints([[cur.getLatLng().lat, cur.getLatLng().lng],[s.lat,s.lng]]);
+ };
  document.getElementById("spot-list").appendChild(li);
+ markers.push(m);
 });
 
-/* current location */
+/* 現在地自動表示＆経路案内 */
 let cur=null, acc=null;
 const redPin = "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
-document.getElementById("locate-btn").onclick=()=>{
+const route = L.Routing.control({waypoints: [], show: false}).addTo(map);
+
+function locateAndRoute(){
  navigator.geolocation.getCurrentPosition(p=>{
-  const {latitude,longitude,accuracy}=p.coords;
-  if(cur){map.removeLayer(cur); map.removeLayer(acc);}
-  cur = L.marker([latitude,longitude], {
-    icon:L.icon({iconUrl:redPin, iconSize:[32,32], iconAnchor:[16,32]})
-  }).addTo(map).bindPopup("📍 現在地").openPopup();
-  acc = L.circle([latitude,longitude],{radius:accuracy,color:"#1976d2",fillOpacity:.15}).addTo(map);
-  map.setView([latitude,longitude],14);
+   const {latitude,longitude,accuracy}=p.coords;
+   if(cur){map.removeLayer(cur); map.removeLayer(acc);}
+   cur = L.marker([latitude,longitude],{
+     icon:L.icon({iconUrl:redPin, iconSize:[32,32], iconAnchor:[16,32]})
+   }).addTo(map).bindPopup(text[lang].current).openPopup();
+   acc = L.circle([latitude,longitude],{radius:accuracy,color:"#1976d2",fillOpacity:.15}).addTo(map);
+   map.setView([latitude,longitude],12);
+ });
+}
+
+document.getElementById("locate-btn").onclick = locateAndRoute;
+/* ページロード時に自動取得 */
+locateAndRoute();
+
+/* 言語切替 */
+document.getElementById("lang-switch").onclick = ()=>{
+ lang = (lang==='ja')?'en':'ja';
+ document.getElementById("sidebar-title").textContent = text[lang].sidebar;
+ document.querySelectorAll("#spot-list .side-title").forEach((el,i)=>{el.textContent=spots[i].name[lang];});
+ markers.forEach((m,i)=>{
+   m.setPopupContent(`
+     <div class="popup-name">${spots[i].name[lang]}</div>
+     <div class="popup-stars">${stars(spots[i].stars)}</div>
+     <div class="popup-desc">${spots[i].desc[lang]}</div>
+     <div class="popup-link"><a href="${spots[i].link}" target="_blank">${text[lang].official}</a></div>
+   `);
  });
 };
 </script>
