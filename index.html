@@ -3,7 +3,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Kochi Map - Pin Version</title>
+<title>Kochi Map - Complete Pin Version</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
   body { margin:0; font-family: "Poppins", sans-serif; display:flex; height:100vh; }
@@ -41,13 +41,14 @@
     { attribution: "Tiles © Esri" }
   ).addTo(map);
 
-  // ピンアイコンの色ジャンル
   const genrePins = {
     "自然":"https://maps.google.com/mapfiles/ms/icons/green-dot.png",
     "文化":"https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-    "グルメ":"https://maps.google.com/mapfiles/ms/icons/orange-dot.png"
+    "グルメ":"https://maps.google.com/mapfiles/ms/icons/orange-dot.png",
+    "体験":"https://maps.google.com/mapfiles/ms/icons/purple-dot.png"
   };
 
+  // 元の観光地＋追加10スポット
   const spots = [
     {name:"桂浜", lat:33.4961, lng:133.5715, stars:5, desc:"坂本龍馬像で有名な景勝地。海と松林が美しい。", link:"https://www.city.kochi.kochi.jp/soshiki/kankou/162.html", genre:"文化"},
     {name:"仁淀川", lat:33.5535, lng:133.0458, stars:5, desc:"“仁淀ブルー”と呼ばれる清流。四季折々の景色が楽しめる。", link:"https://www.kochi-kankou.or.jp/spot/13357/", genre:"自然"},
@@ -57,7 +58,19 @@
     {name:"高知城", lat:33.5599, lng:133.5312, stars:3, desc:"江戸時代から現存する天守を持つ城。", link:"https://www.city.kochi.kochi.jp/soshiki/kanko/162.html", genre:"文化"},
     {name:"ひろめ市場", lat:33.5586, lng:133.5310, stars:4, desc:"地元グルメとお土産の宝庫。昼夜問わず活気がある。", link:"https://hirome.co.jp/", genre:"グルメ"},
     {name:"坂本龍馬記念館", lat:33.5072, lng:133.5905, stars:4, desc:"坂本龍馬に関する資料や展示を多数収蔵。", link:"https://www.ryoma-kinenkan.jp/", genre:"文化"},
-    {name:"四万十川", lat:33.2333, lng:132.8667, stars:5, desc:"日本最後の清流。川下りやカヌーが人気。", link:"https://www.kochi-kankou.or.jp/spot/13521/", genre:"自然"}
+    {name:"四万十川", lat:33.2333, lng:132.8667, stars:5, desc:"日本最後の清流。川下りやカヌーが人気。", link:"https://www.kochi-kankou.or.jp/spot/13521/", genre:"自然"},
+    
+    // 追加10スポット
+    {name:"牧野植物園", lat:33.5612, lng:133.5372, stars:4, desc:"日本の植物学の父・牧野富太郎ゆかりの植物園。", link:"https://www.makino.or.jp/", genre:"自然"},
+    {name:"金剛福寺", lat:32.7280, lng:133.0282, stars:4, desc:"四国八十八ヶ所霊場第38番札所。自然と歴史を感じる場所。", link:"https://www.kongofukuji.or.jp/", genre:"文化"},
+    {name:"稲叢山", lat:33.6312, lng:133.1150, stars:4, desc:"高知最高峰の山。春はツツジが美しい。", link:"https://www.kochi-kankou.or.jp/spot/13657/", genre:"自然"},
+    {name:"土佐神社", lat:33.5650, lng:133.5365, stars:4, desc:"旧土佐国一宮の神社。歴史ある建造物と祭事。", link:"https://www.tosajinja.or.jp/", genre:"文化"},
+    {name:"桂浜水族館", lat:33.4955, lng:133.5730, stars:3, desc:"レトロな水族館で魚や海獣とふれあえる。", link:"https://www.city.kochi.kochi.jp/soshiki/kankou/162.html", genre:"体験"},
+    {name:"竹林寺", lat:33.6060, lng:133.5310, stars:4, desc:"四国八十八ヶ所霊場31番札所。竹林に囲まれた寺院。", link:"https://www.takeshindenji.jp/", genre:"文化"},
+    {name:"足摺岬", lat:32.7075, lng:133.0275, stars:5, desc:"高知最南端の岬。灯台と断崖絶景。", link:"https://www.kochi-kankou.or.jp/spot/13523/", genre:"自然"},
+    {name:"日曜市", lat:33.5589, lng:133.5300, stars:4, desc:"高知市中心部で毎週開催される露店市。", link:"https://www.kochi-navi.jp/sundaymarket", genre:"体験"},
+    {name:"磯木洞", lat:33.4560, lng:133.4820, stars:4, desc:"苔むした渓谷と洞窟のハイキングスポット。", link:"https://www.kochi-kankou.or.jp/spot/13689/", genre:"自然"},
+    {name:"杉の大杉", lat:33.4815, lng:133.3040, stars:5, desc:"約3,000年の歴史を持つ巨大杉。自然信仰の象徴。", link:"https://www.kochi-kankou.or.jp/spot/13601/", genre:"自然"}
   ];
 
   function renderStars(n){ return "★".repeat(n) + "☆".repeat(5-n); }
