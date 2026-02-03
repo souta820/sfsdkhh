@@ -189,12 +189,15 @@ spots.forEach(s=>{
 
 /* current location */
 let cur=null, acc=null;
+const redPin = "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
 document.getElementById("locate-btn").onclick=()=>{
  navigator.geolocation.getCurrentPosition(p=>{
   const {latitude,longitude,accuracy}=p.coords;
-  if(cur){map.removeLayer(cur);map.removeLayer(acc);}
-  cur=L.marker([latitude,longitude]).addTo(map).bindPopup("📍 現在地").openPopup();
-  acc=L.circle([latitude,longitude],{radius:accuracy,color:"#1976d2",fillOpacity:.15}).addTo(map);
+  if(cur){map.removeLayer(cur); map.removeLayer(acc);}
+  cur = L.marker([latitude,longitude], {
+    icon:L.icon({iconUrl:redPin, iconSize:[32,32], iconAnchor:[16,32]})
+  }).addTo(map).bindPopup("📍 現在地").openPopup();
+  acc = L.circle([latitude,longitude],{radius:accuracy,color:"#1976d2",fillOpacity:.15}).addTo(map);
   map.setView([latitude,longitude],14);
  });
 };
