@@ -3,135 +3,64 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>やる気ボタン</title>
+  <title>大阪マップ</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
 
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      height: 100vh;
+    html, body {
       margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      overflow: hidden;
+      padding: 0;
+      height: 100%;
     }
 
-    .container {
-      text-align: center;
-      padding: 40px;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 420px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-      color: #fff;
+    #map {
+      width: 100%;
+      height: 100%;
     }
 
-    h1 {
-      margin-bottom: 30px;
-      font-weight: 600;
-    }
-
-    button {
-      position: relative;
-      overflow: hidden;
-      padding: 15px 36px;
-      font-size: 18px;
-      border-radius: 30px;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, #ff9966, #ff5e62);
-      color: white;
-      font-weight: 600;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-      transition: transform 0.15s ease;
-    }
-
-    button:active {
-      transform: scale(0.95);
-    }
-
-    /* リップル */
-    .ripple {
+    .title {
       position: absolute;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.5);
-      transform: scale(0);
-      animation: ripple 0.6s ease-out;
-      pointer-events: none;
-    }
-
-    @keyframes ripple {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-
-    #message {
-      margin-top: 30px;
-      font-size: 20px;
-      min-height: 2.5em;
-      line-height: 1.4;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-    }
-
-    #message.show {
-      opacity: 1;
-      transform: translateY(0);
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-family: sans-serif;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>🔥 やる気ボタン 🔥</h1>
-    <button id="btn">押してみる</button>
-    <div id="message"></div>
-  </div>
+  <div class="title">📍 大阪 地図アプリ</div>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    const messages = [
-      "今やらなかったら、たぶん一生やらない。",
-      "完璧じゃなくていい。まず一歩。",
-      "5分だけやろう。それでいい。",
-      "今日の努力は、未来の自分が感謝する。",
-      "やる気は行動の後についてくる。",
-      "もう十分迷った。動こう。",
-      "始めた人から前に進んでる。"
-    ];
+    // 大阪の中心座標
+    const osaka = [34.6937, 135.5023];
 
-    const btn = document.getElementById("btn");
-    const messageEl = document.getElementById("message");
+    // 地図生成
+    const map = L.map("map").setView(osaka, 13);
 
-    btn.addEventListener("click", function (e) {
-      // 文字を一旦消す
-      messageEl.classList.remove("show");
+    // 地図タイル（OpenStreetMap）
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors"
+    }).addTo(map);
 
-      // リップル生成
-      const ripple = document.createElement("span");
-      ripple.className = "ripple";
-      const rect = btn.getBoundingClientRect();
-      ripple.style.left = e.clientX - rect.left + "px";
-      ripple.style.top = e.clientY - rect.top + "px";
-      ripple.style.width = ripple.style.height = rect.width + "px";
-      btn.appendChild(ripple);
-
-      setTimeout(() => ripple.remove(), 600);
-
-      // 少し待ってから文字表示
-      setTimeout(() => {
-        const randomIndex = Math.floor(Math.random() * messages.length);
-        messageEl.textContent = messages[randomIndex];
-        messageEl.classList.add("show");
-      }, 500);
-    });
+    // マーカー（大阪駅）
+    const marker = L.marker([34.7025, 135.4959]).addTo(map);
+    marker.bindPopup("🚉 大阪駅").openPopup();
   </script>
 
 </body>
