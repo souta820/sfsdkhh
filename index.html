@@ -1,1 +1,138 @@
 # sfsdkhh
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>やる気ボタン</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      padding: 40px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      color: #fff;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+
+    button {
+      position: relative;
+      overflow: hidden;
+      padding: 15px 36px;
+      font-size: 18px;
+      border-radius: 30px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff9966, #ff5e62);
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      transition: transform 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    /* リップル */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transform: scale(0);
+      animation: ripple 0.6s ease-out;
+      pointer-events: none;
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    #message {
+      margin-top: 30px;
+      font-size: 20px;
+      min-height: 2.5em;
+      line-height: 1.4;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    #message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🔥 やる気ボタン 🔥</h1>
+    <button id="btn">押してみる</button>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const messages = [
+      "今やらなかったら、たぶん一生やらない。",
+      "完璧じゃなくていい。まず一歩。",
+      "5分だけやろう。それでいい。",
+      "今日の努力は、未来の自分が感謝する。",
+      "やる気は行動の後についてくる。",
+      "もう十分迷った。動こう。",
+      "始めた人から前に進んでる。"
+    ];
+
+    const btn = document.getElementById("btn");
+    const messageEl = document.getElementById("message");
+
+    btn.addEventListener("click", function (e) {
+      // 文字を一旦消す
+      messageEl.classList.remove("show");
+
+      // リップル生成
+      const ripple = document.createElement("span");
+      ripple.className = "ripple";
+      const rect = btn.getBoundingClientRect();
+      ripple.style.left = e.clientX - rect.left + "px";
+      ripple.style.top = e.clientY - rect.top + "px";
+      ripple.style.width = ripple.style.height = rect.width + "px";
+      btn.appendChild(ripple);
+
+      setTimeout(() => ripple.remove(), 600);
+
+      // 少し待ってから文字表示
+      setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        messageEl.textContent = messages[randomIndex];
+        messageEl.classList.add("show");
+      }, 500);
+    });
+  </script>
+
+</body>
+</html>
