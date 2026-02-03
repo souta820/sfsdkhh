@@ -2,51 +2,97 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>大阪 混雑マップ</title>
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-
-  <style>
-    html, body, #map { height: 100%; margin: 0; }
-  </style>
+<meta charset="UTF-8">
+<title>Kochi Map - Pin Version</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  body { margin:0; font-family: "Poppins", sans-serif; display:flex; height:100vh; }
+  #sidebar { width:250px; background:#f8f9fa; overflow-y:auto; padding:10px; box-shadow: 2px 0 5px rgba(0,0,0,0.1);}
+  #sidebar h2 { font-size:18px; margin-top:0; margin-bottom:10px; }
+  #sidebar ul { list-style:none; padding:0; margin:0; }
+  #sidebar li { padding:8px 5px; margin-bottom:5px; background:#fff; border-radius:5px; cursor:pointer; transition:0.2s; }
+  #sidebar li:hover { background:#e0f7fa; }
+  #map { flex:1; }
+  .leaflet-popup-content-wrapper { background: rgba(255,255,255,0.95); border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);}
+  .leaflet-popup-tip { background: rgba(255,255,255,0.95);}
+  .popup-name { font-weight:700; margin-bottom:3px; font-size:16px; }
+  .popup-stars { color:#ffb400; margin-bottom:5px; }
+  .popup-desc { font-size:13px; margin-bottom:5px; }
+  .popup-link a { color:#007bff; text-decoration:none; font-weight:600; }
+  .popup-link a:hover { text-decoration:underline; }
+</style>
 </head>
 <body>
 
+<div id="sidebar">
+  <h2>高知観光スポット</h2>
+  <ul id="spot-list"></ul>
+</div>
+
 <div id="map"></div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  const map = L.map("map").setView([34.6937, 135.5023], 13);
+  const map = L.map("map").setView([33.5597, 133.5311], 9);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap"
-  }).addTo(map);
+  // 衛星タイル
+  L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    { attribution: "Tiles © Esri" }
+  ).addTo(map);
 
-  const hour = new Date().getHours();
-
-  // 混雑度（0〜1）
-  const level = (h) => {
-    if (h >= 7 && h <= 9) return 0.8;
-    if (h >= 17 && h <= 19) return 0.9;
-    if (h >= 12 && h <= 14) return 0.7;
-    return 0.3;
+  // ピンアイコンの色ジャンル
+  const genrePins = {
+    "自然":"https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+    "文化":"https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+    "グルメ":"https://maps.google.com/mapfiles/ms/icons/orange-dot.png"
   };
 
-  const heatData = [
-    [34.7025, 135.4959, level(hour)], // 大阪駅
-    [34.6687, 135.5010, level(hour)], // なんば
-    [34.6525, 135.5063, level(hour)], // 天王寺
-    [34.6654, 135.4323, 0.5]          // USJ
+  const spots = [
+    {name:"桂浜", lat:33.4961, lng:133.5715, stars:5, desc:"坂本龍馬像で有名な景勝地。海と松林が美しい。", link:"https://www.city.kochi.kochi.jp/soshiki/kankou/162.html", genre:"文化"},
+    {name:"仁淀川", lat:33.5535, lng:133.0458, stars:5, desc:"“仁淀ブルー”と呼ばれる清流。四季折々の景色が楽しめる。", link:"https://www.kochi-kankou.or.jp/spot/13357/", genre:"自然"},
+    {name:"にこ淵", lat:33.6446, lng:133.1656, stars:4, desc:"神秘的な滝壺。エメラルドグリーンの水が美しい。", link:"https://www.kochi-kankou.or.jp/spot/13864/", genre:"自然"},
+    {name:"北川村 モネの庭", lat:33.5836, lng:134.0622, stars:4, desc:"クロード・モネ公認の庭園。花と水景の癒し空間。", link:"https://www.monet-garden.jp/", genre:"文化"},
+    {name:"四国カルスト", lat:33.3652, lng:132.9253, stars:4, desc:"標高1,000m級の絶景高原。石灰岩の風景と放牧牛。", link:"https://www.kochi-kankou.or.jp/spot/13519/", genre:"自然"},
+    {name:"高知城", lat:33.5599, lng:133.5312, stars:3, desc:"江戸時代から現存する天守を持つ城。", link:"https://www.city.kochi.kochi.jp/soshiki/kanko/162.html", genre:"文化"},
+    {name:"ひろめ市場", lat:33.5586, lng:133.5310, stars:4, desc:"地元グルメとお土産の宝庫。昼夜問わず活気がある。", link:"https://hirome.co.jp/", genre:"グルメ"},
+    {name:"坂本龍馬記念館", lat:33.5072, lng:133.5905, stars:4, desc:"坂本龍馬に関する資料や展示を多数収蔵。", link:"https://www.ryoma-kinenkan.jp/", genre:"文化"},
+    {name:"四万十川", lat:33.2333, lng:132.8667, stars:5, desc:"日本最後の清流。川下りやカヌーが人気。", link:"https://www.kochi-kankou.or.jp/spot/13521/", genre:"自然"}
   ];
 
-  L.heatLayer(heatData, {
-    radius: 40,
-    blur: 25,
-    maxZoom: 15
-  }).addTo(map);
-</script>
+  function renderStars(n){ return "★".repeat(n) + "☆".repeat(5-n); }
 
+  const markers = [];
+
+  spots.forEach((spot)=>{
+    const icon = L.icon({
+      iconUrl: genrePins[spot.genre] || "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+      iconSize: [32,32],
+      iconAnchor: [16,32],
+      popupAnchor: [0,-32]
+    });
+
+    const marker = L.marker([spot.lat, spot.lng], {icon: icon}).addTo(map);
+
+    marker.bindPopup(`
+      <div class="popup-name">${spot.name}</div>
+      <div class="popup-stars">${renderStars(spot.stars)}</div>
+      <div class="popup-desc">${spot.desc}</div>
+      <div class="popup-link"><a href="${spot.link}" target="_blank">公式ページを見る</a></div>
+    `);
+
+    markers.push(marker);
+
+    // サイドバーに追加
+    const li = document.createElement("li");
+    li.textContent = spot.name;
+    li.onclick = ()=>{
+      map.setView([spot.lat, spot.lng], 13);
+      marker.openPopup();
+    };
+    document.getElementById("spot-list").appendChild(li);
+  });
+
+</script>
 </body>
 </html>
