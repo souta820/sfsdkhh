@@ -41,7 +41,7 @@
     { attribution: "Tiles © Esri" }
   ).addTo(map);
 
-  // ジャンル別ピンアイコン（人間が色分けで工夫した部分）
+  // ジャンル別ピンアイコン
   const genrePins = {
     "自然":"https://maps.google.com/mapfiles/ms/icons/green-dot.png",
     "文化":"https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
@@ -49,7 +49,7 @@
     "体験":"https://maps.google.com/mapfiles/ms/icons/purple-dot.png"
   };
 
-  // 観光地リスト（元9 + 追加10スポット）
+  // 観光地リスト
   const spots = [
     {name:"桂浜", lat:33.4961, lng:133.5715, stars:5, desc:"坂本龍馬像で有名な景勝地。海と松林が美しい。", link:"https://www.city.kochi.kochi.jp/soshiki/kankou/162.html", genre:"文化"},
     {name:"仁淀川", lat:33.5535, lng:133.0458, stars:5, desc:"“仁淀ブルー”と呼ばれる清流。四季折々の景色が楽しめる。", link:"https://www.kochi-kankou.or.jp/spot/13357/", genre:"自然"},
@@ -60,8 +60,6 @@
     {name:"ひろめ市場", lat:33.5586, lng:133.5310, stars:4, desc:"地元グルメとお土産の宝庫。昼夜問わず活気がある。", link:"https://hirome.co.jp/", genre:"グルメ"},
     {name:"坂本龍馬記念館", lat:33.5072, lng:133.5905, stars:4, desc:"坂本龍馬に関する資料や展示を多数収蔵。", link:"https://www.ryoma-kinenkan.jp/", genre:"文化"},
     {name:"四万十川", lat:33.2333, lng:132.8667, stars:5, desc:"日本最後の清流。川下りやカヌーが人気。", link:"https://www.kochi-kankou.or.jp/spot/13521/", genre:"自然"},
-    
-    // 追加10スポット
     {name:"牧野植物園", lat:33.5612, lng:133.5372, stars:4, desc:"日本の植物学の父・牧野富太郎ゆかりの植物園。", link:"https://www.makino.or.jp/", genre:"自然"},
     {name:"金剛福寺", lat:32.7280, lng:133.0282, stars:4, desc:"四国八十八ヶ所霊場第38番札所。自然と歴史を感じる場所。", link:"https://www.kongofukuji.or.jp/", genre:"文化"},
     {name:"稲叢山", lat:33.6312, lng:133.1150, stars:4, desc:"高知最高峰の山。春はツツジが美しい。", link:"https://www.kochi-kankou.or.jp/spot/13657/", genre:"自然"},
@@ -97,7 +95,7 @@
 
     markers.push(marker);
 
-    // サイドバーに追加（人間が工夫した箇所）
+    // 
     const li = document.createElement("li");
     li.textContent = spot.name;
     li.onclick = ()=>{
